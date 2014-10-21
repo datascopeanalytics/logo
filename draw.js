@@ -15,7 +15,10 @@ var GenerativePoly = function(text, passedColor) {
     var textlayer = new Layer();
     textlayer.addChild(text);
 
+    // DEBUG: turn this to 'true' to quickly see how the darn thing is built!
     this.displayConstruction = false;
+
+    // configure bounding box
     var adjust = 20;
     var padding = 15;
     var border = new Layer();
@@ -95,15 +98,18 @@ var GenerativePoly = function(text, passedColor) {
         circles.addChild(circ);
     }
 
+    // choose vertices from the set of candidate intersection points from the construction lines.
     var points = circles.children.slice(0);
     var vertices = [];
     var circlelayer = new Layer();
-
     for(var i=0; i<9; i++){
         var rand = Math.floor(Math.random()*points.length);
         points[rand].fillColor = 'yellow';
-        c2 = new Path.Circle(pathCenter(points[rand]), bounds.height*.7);
-        c2.strokeColor = 'black';
+        c2 = new Path.Ellipse({
+            center: pathCenter(points[rand]),
+            radius: [bounds.height*.7, bounds.height*.7*.7],
+            strokeColor: 'black',
+        });
 
         vertices.push(pathCenter(points[rand]));
         circlelayer.addChild(c2);
@@ -195,12 +201,17 @@ function download(filename, text) {
     pom.click();
 }
 var draw = function() {
+    // this is for drawing 9 different logos on 1 canvas. we happen to know the size a priori.
     var points = [[200,100],[600,100],[1000,100],[200,300],[600,300],[1000,300],[200,500],[600,500],[1000,500]];
     for (var i=0; i<points.length; i++){
+
+        // put the center (?) of this SVG in this location and color it white
         var text = project.importSVG(document.getElementById('logotype'));
         text.position = new Point(points[i]);
         text.fillColor = 'white';
         text.scale(.75);
+
+        // make a v nice polygon
         var poly = new GenerativePoly(text,'#f56600');
     }
 }
