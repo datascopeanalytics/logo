@@ -150,6 +150,10 @@ var GenerativePoly = function(text, passedColor) {
         circlelayer.remove();
         border.remove();
     }
+
+    // center that shit
+    text.position = centroid(shape);
+
 }
 
 function polar_to_point(polarCoord){
@@ -192,6 +196,24 @@ function lineFrom(startpoint,angle,length){
     var line = new Path.Line(startpoint,
                              endpoint);
     return line;
+}
+
+function centroid(polygon) {
+  var area = 0;
+  var c_x = 0;
+  var c_y = 0;
+  polygon.curves.forEach(function (curve) {
+    var p1 = curve.point1;
+    var p2 = curve.point2;
+    var z = (p1.x * p2.y - p2.x * p1.y);
+    c_x += (p1.x + p2.x) * z;
+    c_y += (p1.y + p2.y) * z;
+    area += z;
+});
+  area /= 2;
+  c_x /= (6 * area);
+  c_y /= (6 * area);
+  return new Point(c_x, c_y);
 }
 
 function download(filename, text) {
