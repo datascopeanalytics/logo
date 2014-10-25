@@ -59,7 +59,7 @@ var GenerativePoly = function(text, passedColor) {
     // point using a Cauchy distribution and choose the radial component based
     // on the available space in the acceptable region.
     var dtheta, kappa=3;
-    for(var i=0; i<8; i++) {
+    for(var i=0; i<1; i++) {
         dtheta = censored_von_mises(2*Math.PI/9, kappa, r, theta, box);
         theta += dtheta;
         r = random_allowed_in_region(box, outerBounds, theta);
@@ -68,7 +68,7 @@ var GenerativePoly = function(text, passedColor) {
         point_layer.addChild(Path.Circle({
             center: p + centroid,
             radius: 5,
-            fillColor: 'red'
+            fillColor: 'purple'
         }));
     }
 
@@ -141,31 +141,47 @@ function censored_von_mises(mu, kappa, r, theta, bounds) {
     // determine which corner is the *next* corner that the generative polygon
     // must go around
     var dtheta_max = TWOPI;
-    // var centroid = pathCenter(bounds);
-    // var b = bounds.bounds;
-    // var next_corner, corners = [
-    //     new Point(b.x, b.y),
-    //     new Point(b.x+b.width, b.y),
-    //     new Point(b.x+b.width, b.y+b.height),
-    //     new Point(b.x, b.y+b.height)
-    // ];
-    // corners.forEach(function(c, i){
-    //     var v = c - centroid;
-    //     var t = Math.atan2(v.y, v.x);
-    //     var dt = (t - theta) % TWOPI;
-    //     if(dt>Math.PI)
-    //         dt = dt - TWOPI;
-    //     if(dt<-Math.PI)
-    //         dt = dt + TWOPI;
-    //     console.log('dt', theta, t, dt);
-    //     if (dt>0 && dt<dtheta_max) {
-    //         dtheta_max = dt;
-    //         next_corner = c;
-    //     }
-    // });
+    var centroid = pathCenter(bounds);
+    var b = bounds.bounds;
+    var next_corner, corners = [
+        new Point(b.x, b.y),
+        new Point(b.x+b.width, b.y),
+        new Point(b.x+b.width, b.y+b.height),
+        new Point(b.x, b.y+b.height)
+    ];
+    var colors = ["red", "green", "yellow", "purple"];
+    var visible_corners = [];
+    corners.forEach(function(c, i){
+        var v = c - centroid;
+        var t = Math.atan2(v.y, v.x);
+        var dt = (t - theta) % TWOPI;
+        if(dt>Math.PI)
+            dt = dt - TWOPI;
+        if(dt<-Math.PI)
+            dt = dt + TWOPI;
+        if (dt>0 && dt<dtheta_max) {
+            dtheta_max = dt;
+            next_corner = c;
+        }
 
-    // var nc = Path.Circle(next_corner, 10);
-    // nc.fillColor = 'green';
+        var nc = Path.Circle(c, 10);
+        nc.fillColor = colors[i];
+
+        // make sure the line to the corner does not intersect the bounds
+        var line_to_corner = Path.Line(c, p+centroid);
+        if(line_to_corner.getIntersections(bounds).length===1 && dt > 0) {
+            visible_corners.push([c.getDistance(p+centroid), c]);
+            line_to_corner.strokeColor = colors[i];
+        }
+
+    });
+
+    // the farthest visible corner is the one we want to use
+    visible_corners.sort()
+    var visible_corner = visible_corners[visible_corners.length-1][1];
+
+    // extend the line to the farthest visible corner to the outer bounds to
+    // determine the maximum angle
 
     // draw von Mises variates until we find something in the acceptable range
     var dtheta = dtheta_max*2;
