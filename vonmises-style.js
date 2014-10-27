@@ -29,7 +29,7 @@ var GenerativePoly = function(text, passedColor) {
         size: [text.bounds.width+adjust+padding*2, text.bounds.height+padding]
     });
     var box = new Path.Rectangle(bounds,0);
-    box.strokeColor = 'black';
+    //box.strokeColor = 'black';
     border.addChild(box);
     var outerBounds = new Path.Rectangle(new Rectangle(
         new Point(bounds.x-.75*offset,
@@ -37,7 +37,7 @@ var GenerativePoly = function(text, passedColor) {
         new Size(bounds.width+1.5*offset,
                  bounds.height+2*offset)));
     border.addChild(outerBounds);
-    outerBounds.strokeColor = 'blue';
+    //outerBounds.strokeColor = 'blue';
 
     // set up the data structure to hold all of the points
     var point_layer = new Layer();
@@ -45,31 +45,50 @@ var GenerativePoly = function(text, passedColor) {
     var centroid = pathCenter(box);
 
     // choose a random starting point in the acceptable region
-    var theta = Math.random() * Math.PI * 2;
+    var theta = Math.random() * Math.PI * 2,
+        theta0 = theta;
     var r = random_allowed_in_region(box, outerBounds, theta);
     var p = new Point(r*Math.cos(theta), r*Math.sin(theta));
     point_list.push(p+centroid);
-        point_layer.addChild(Path.Circle({
+    point_layer.addChild(Path.Circle({
         center: p + centroid,
         radius: 5,
         fillColor: 'red'
     }));
 
-    // for each of the next verticies, choose the angular component of the
-    // point using a Cauchy distribution and choose the radial component based
-    // on the available space in the acceptable region.
-    var dtheta, kappa=3;
-    for(var i=0; i<1; i++) {
-        dtheta = censored_von_mises(2*Math.PI/9, kappa, r, theta, box);
-        theta += dtheta;
-        r = random_allowed_in_region(box, outerBounds, theta);
-        p = new Point(r*Math.cos(theta), r*Math.sin(theta));
-        point_list.push(p+centroid);
-        point_layer.addChild(Path.Circle({
-            center: p + centroid,
-            radius: 5,
-            fillColor: 'purple'
-        }));
+    // for each of the next verticies, choose the angular component of the point
+    // using a Cauchy distribution and choose the radial component based on the
+    // available space in the acceptable region. Only accept new points that do
+    // not intersect the bounds
+    var dtheta, kappa=3, segment;
+    while (true) {
+
+        // draw a new point
+        dtheta = censored_von_mises_variate(2*Math.PI/9, kappa);
+        r = random_allowed_in_region(box, outerBounds, theta+dtheta);
+        p = new Point(r*Math.cos(theta+dtheta), r*Math.sin(theta+dtheta));
+
+        // if theta has gone all the way round the circle, check to see if the
+        // line from the old point to the first point is valid
+        if(theta+dtheta > theta0+TWOPI) {
+            segment = Path.Line(point_list[point_list.length-1], point_list[0]);
+            if(box.getIntersections(segment).length === 0) {
+                break;
+            }
+        }
+
+        // If the new point is valid, update the point list and add it to the
+        // layer, otherwise keep on trying
+        segment = Path.Line(point_list[point_list.length-1], p+centroid);
+        if(box.getIntersections(segment).length === 0) {
+            theta = theta + dtheta;
+            point_list.push(p+centroid);
+            point_layer.addChild(Path.Circle({
+                center: p + centroid,
+                radius: 5,
+                fillColor: 'purple'
+            }));
+        }
     }
 
     // create the shape layer with the orange background and add the points to it
@@ -83,7 +102,7 @@ var GenerativePoly = function(text, passedColor) {
     shape.add(point_list[0]);
     shapeLayer.addChild(shape);
 
-    //point_layer.remove();
+    point_layer.remove();
 
     // if(!this.displayConstruction){
     //     gridlines.remove();
@@ -105,7 +124,7 @@ function random_allowed_in_region(bounds, outerBounds, theta) {
 
     // draw line from centroid along angle theta
     var line = Path.Line(centroid, infinity);
-    line.strokeColor = 'black';
+    //line.strokeColor = 'black';
 
     // create the acceptable region
     var acceptable_region = outerBounds.subtract(bounds);
@@ -118,7 +137,7 @@ function random_allowed_in_region(bounds, outerBounds, theta) {
     var p0 = intersection_points[0].point;
     var p1 = intersection_points[1].point;
     var segment = Path.Line(p0, p1);
-    segment.strokeColor = 'red';
+    //segment.strokeColor = 'red';
 
     // choose a random point along this line
     var p = p0 + (p1 - p0) * Math.random();
@@ -128,67 +147,14 @@ function random_allowed_in_region(bounds, outerBounds, theta) {
 var NV_MAGICCONST = 4 * Math.exp(-0.5)/Math.sqrt(2.0);
 var TWOPI = 2 * Math.PI;
 
-function censored_von_mises(mu, kappa, r, theta, bounds) {
-
-    // get the current point
-    var p = new Point(r*Math.cos(theta), r*Math.sin(theta));
-
-    // determine the minimum possible dtheta allowable.
-    // dtheta is always increasing
-    var dtheta_min = 0;
-
-    // determine the maximum possible dtheta allowable.
-    // determine which corner is the *next* corner that the generative polygon
-    // must go around
-    var dtheta_max = TWOPI;
-    var centroid = pathCenter(bounds);
-    var b = bounds.bounds;
-    var next_corner, corners = [
-        new Point(b.x, b.y),
-        new Point(b.x+b.width, b.y),
-        new Point(b.x+b.width, b.y+b.height),
-        new Point(b.x, b.y+b.height)
-    ];
-    var colors = ["red", "green", "yellow", "purple"];
-    var visible_corners = [];
-    corners.forEach(function(c, i){
-        var v = c - centroid;
-        var t = Math.atan2(v.y, v.x);
-        var dt = (t - theta) % TWOPI;
-        if(dt>Math.PI)
-            dt = dt - TWOPI;
-        if(dt<-Math.PI)
-            dt = dt + TWOPI;
-        if (dt>0 && dt<dtheta_max) {
-            dtheta_max = dt;
-            next_corner = c;
-        }
-
-        var nc = Path.Circle(c, 10);
-        nc.fillColor = colors[i];
-
-        // make sure the line to the corner does not intersect the bounds
-        var line_to_corner = Path.Line(c, p+centroid);
-        if(line_to_corner.getIntersections(bounds).length===1 && dt > 0) {
-            visible_corners.push([c.getDistance(p+centroid), c]);
-            line_to_corner.strokeColor = colors[i];
-        }
-
-    });
-
-    // the farthest visible corner is the one we want to use
-    visible_corners.sort()
-    var visible_corner = visible_corners[visible_corners.length-1][1];
-
-    // extend the line to the farthest visible corner to the outer bounds to
-    // determine the maximum angle
-
-    // draw von Mises variates until we find something in the acceptable range
-    var dtheta = dtheta_max*2;
-    while(dtheta<dtheta_min || dtheta_max<dtheta) {
-        dtheta = von_mises_variate(mu, kappa);
+function censored_von_mises_variate(mu, kappa) {
+    var theta_min = 0;
+    var theta_max = TWOPI;
+    var theta = theta_max*2;
+    while(theta<theta_min || theta_max<theta) {
+        theta = von_mises_variate(mu, kappa);
     }
-    return dtheta;
+    return theta;
 }
 
 function von_mises_variate (mu, kappa) {
@@ -230,7 +196,7 @@ function download(filename, text) {
 }
 var draw = function() {
     // this is for drawing 9 different logos on 1 canvas. we happen to know the size a priori.
-    var points = [[200,100]]; //,[600,100],[1000,100],[200,300],[600,300],[1000,300],[200,500],[600,500],[1000,500]];
+    var points = [[200,100],[600,100],[1000,100],[200,300],[600,300],[1000,300],[200,500],[600,500],[1000,500]];
     for (var i=0; i<points.length; i++){
 
         // put the center (?) of this SVG in this location and color it white
