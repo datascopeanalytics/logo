@@ -231,7 +231,7 @@ var draw = function() {
         var text = project.importSVG(document.getElementById('logotype'));
         text.position = new Point(points[i]);
         text.fillColor = 'white';
-        text.scale(.75);
+        text.scale(.65);
 
         // make a v nice polygon
         var poly = new GenerativePoly(text,'#f56600');
