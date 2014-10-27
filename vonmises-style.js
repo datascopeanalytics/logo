@@ -1,13 +1,9 @@
-/**
-   var text = new PointText({
-   point: [120, 300],
-   content: 'datascope',
-   fillColor: 'white',
-   fontFamily: 'Avenir Next',
-   fontWeight: '600',
-   fontSize: 72
-   });
-*/
+// utility function for adding buttons to the DOM, not related to drawing:
+function insertAfter(newNode, referenceNode) {
+    return referenceNode.parentNode.insertBefore(
+        newNode, referenceNode.nextSibling);
+}
+var logofill = "#FF6000";
 
 // takes an item with bounds, returns an irregular polygon to put around it
 var GenerativePoly = function(text, passedColor) {
@@ -110,6 +106,7 @@ var GenerativePoly = function(text, passedColor) {
     //     circlelayer.remove();
     //     border.remove();
     // }
+    return shape;
 }
 
 function random_allowed_in_region(bounds, outerBounds, theta) {
@@ -194,6 +191,7 @@ function download(filename, text) {
     pom.setAttribute('download', filename);
     pom.click();
 }
+polys = [];
 var draw = function() {
     // this is for drawing 9 different logos on 1 canvas. we happen to know the size a priori.
     var points = [[200,100],[600,100],[1000,100],[200,300],[600,300],[1000,300],[200,500],[600,500],[1000,500]];
@@ -203,20 +201,55 @@ var draw = function() {
         var text = project.importSVG(document.getElementById('logotype'));
         text.position = new Point(points[i]);
         text.fillColor = 'white';
-        text.scale(.75);
+        text.scale(.65);
 
         // make a v nice polygon
-        var poly = new GenerativePoly(text,'#f56600');
+        var poly = new GenerativePoly(text,logofill);
+        polys.push(poly);
     }
 }
 document.getElementById('downloadButton').addEventListener("click", function() {
     download('logos.svg',project.exportSVG({asString:true}));
 });
-draw();
+draw(logofill);
 document.getElementById('regenButton').addEventListener("click", function() {
     project.clear();
-    draw();
+    polys = [];
+    draw(logofill);
 });
+
+var colors = {"red":"#BA0017",
+              "orange":"#FF6000",
+              "yellow":"#F3ED00",
+              "green":"#00CC66",
+              "blue":"#008EF5",
+              "indigo":"#260052",
+              "magenta":"#D30097"};
+
+
+// closure that returns an appropriate listener
+function redraw_in_color(color) {
+    var func = function() {
+        console.log(polys);
+        for(var i=0; i<polys.length; i++){
+            polys[i].fillColor = color;
+        }
+        logofill = color;
+    }
+    return func;
+}
+var append_after = document.getElementById('colorText');
+for(key in colors){
+    var colorbutton = document.createElement("div");
+    colorbutton.style['background'] = colors[key];
+    colorbutton.style['padding'] = ".3em .6em";
+    colorbutton.style['margin'] = "0 .3em";
+    colorbutton.style["display"] = "inline-block";
+    colorbutton.style["cursor"] = "pointer";
+    colorbutton.innerHTML = key;
+    colorbutton.addEventListener("click", redraw_in_color(colors[key]));
+    append_after = insertAfter(colorbutton, append_after);
+}
 
 
 //download('logos.svg',project.exportSVG({asString:true}));
