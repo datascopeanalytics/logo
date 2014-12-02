@@ -5,6 +5,8 @@ var Logo = function(position,displayConstruction) {
     text.fillColor = 'white';
     text.scale(.65);
 
+    // create a shape that gives the inner bounds of the text and add
+    // a little padding around the whole thing
     var boundsLayer = new Layer();
     var padding = 20;
     var inner = new Path.Rectangle(
@@ -14,10 +16,8 @@ var Logo = function(position,displayConstruction) {
         ),
         new Size(text.bounds.width + 2*padding, text.bounds.height + 2*padding)
     );
-
     inner.strokeColor = "red";
 
-    console.log(text.bounds.topLeft);
 
     var segmentLayer = new Layer();
     // corners first
@@ -56,15 +56,14 @@ var Logo = function(position,displayConstruction) {
             inner.bounds.bottomRight.y+corner_line_length
         )
     )
-    var jitter = 30;
-    var dy = Math.random() * jitter * 2 - jitter;
+    var dy = jitter(30);
     var left_side = new Path.Line(
         new Point(text.position.x-(inner.bounds.width/2),
                   text.position.y+dy),
         new Point(text.position.x-(inner.bounds.width/2)-line_length,
                   text.position.y+dy)
     )
-    dy = Math.random() * jitter * 2 - jitter;
+    dy = jitter(30);
     var right_side = new Path.Line(
         new Point(text.position.x+(inner.bounds.width/2),
                   text.position.y+dy),
@@ -72,15 +71,14 @@ var Logo = function(position,displayConstruction) {
                   text.position.y+dy)
     )
     var horizontal_spacing = inner.bounds.width/3;
-    var jitter = 30;
-    var dx = Math.random() * jitter * 2 - jitter;
+    var dx = jitter(30);
     var top_left = new Path.Line(
         new Point(inner.bounds.topLeft.x+horizontal_spacing+dx,
                   inner.bounds.topLeft.y),
         new Point(inner.bounds.topLeft.x+horizontal_spacing+dx,
                   inner.bounds.topLeft.y-line_length)
     )
-    dx = Math.random() * jitter * 2 - jitter;
+    dx = jitter(30);
     var top_right = new Path.Line(
         new Point(inner.bounds.topRight.x-horizontal_spacing+dx,
                   inner.bounds.topRight.y+line_length/2),
@@ -88,14 +86,14 @@ var Logo = function(position,displayConstruction) {
                   inner.bounds.topRight.y-line_length)
 
     )
-    dx = Math.random() * jitter * 2 - jitter;
+    dx = jitter(30);
     var bottom_left = new Path.Line(
         new Point(inner.bounds.bottomLeft.x+horizontal_spacing+dx,
                   inner.bounds.bottomLeft.y-line_length/2),
         new Point(inner.bounds.bottomLeft.x+horizontal_spacing+dx,
                   inner.bounds.bottomLeft.y+line_length)
     )
-    dx = Math.random() * jitter * 2 - jitter;
+    dx = jitter(30);
     var bottom_right = new Path.Line(
         new Point(inner.bounds.bottomRight.x-horizontal_spacing+dx,
                   inner.bounds.bottomRight.y),
@@ -165,6 +163,10 @@ function theta_comparator(a,b){
 };
 function polar_to_point(polarCoord){
     return new Point(polarCoord.x, polarCoord.y);
+}
+
+function jitter(max_jitter) {
+    return -max_jitter + Math.random()*2*max_jitter;
 }
 
 // ported from random.py
@@ -239,4 +241,3 @@ var draw = function() {
     }
 }
 draw();
-console.log(betavariate(.11,.11));
