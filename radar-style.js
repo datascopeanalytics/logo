@@ -3,82 +3,91 @@ var text = project.importSVG(document.getElementById('logotype'));
 text.position = new Point([400,200]);
 text.fillColor = 'white';
 //text.scale(.65);
+
 var boundsLayer = new Layer();
-var inner = new Path.Rectangle(text.bounds);
+var padding = 20;
+var inner = new Path.Rectangle(
+    new Point(
+	text.bounds.topLeft.x-padding,
+	text.bounds.topLeft.y-padding
+    ),
+    new Size(text.bounds.width + 2*padding, text.bounds.height + 2*padding)
+);
+
 inner.strokeColor = "red";
 
 console.log(text.bounds.topLeft);
 
 var segmentLayer = new Layer();
 // corners first
-var line_length = 80;
+var line_length = text.bounds.height/2;
 var corner_line_length = line_length/Math.sqrt(2);
 
 var tl_corner = new Path.Line(
-    text.bounds.topLeft,
+    inner.bounds.topLeft,
     new Point(
-	text.bounds.topLeft.x-corner_line_length,
-	text.bounds.topLeft.y-corner_line_length
+	inner.bounds.topLeft.x-corner_line_length,
+	inner.bounds.topLeft.y-corner_line_length
     )
 )
 var tr_corner = new Path.Line(
-    text.bounds.topRight,
+    inner.bounds.topRight,
     new Point(
-	text.bounds.topRight.x+corner_line_length,
-	text.bounds.topRight.y-corner_line_length
+	inner.bounds.topRight.x+corner_line_length,
+	inner.bounds.topRight.y-corner_line_length
     )
 )
 var tl_corner = new Path.Line(
-    text.bounds.bottomLeft,
+    inner.bounds.bottomLeft,
     new Point(
-	text.bounds.bottomLeft.x-corner_line_length,
-	text.bounds.bottomLeft.y+corner_line_length
+	inner.bounds.bottomLeft.x-corner_line_length,
+	inner.bounds.bottomLeft.y+corner_line_length
     )
 )
 var tl_corner = new Path.Line(
-    text.bounds.bottomRight,
+    inner.bounds.bottomRight,
     new Point(
-	text.bounds.bottomRight.x+corner_line_length,
-	text.bounds.bottomRight.y+corner_line_length
+	inner.bounds.bottomRight.x+corner_line_length,
+	inner.bounds.bottomRight.y+corner_line_length
     )
 )
 var left_side = new Path.Line(
-    new Point(text.position.x-(text.bounds.width/2),
+    new Point(text.position.x-(inner.bounds.width/2),
 	      text.position.y),
-    new Point(text.position.x-(text.bounds.width/2)-line_length,
+    new Point(text.position.x-(inner.bounds.width/2)-line_length,
 	      text.position.y)
 )
 var right_side = new Path.Line(
-    new Point(text.position.x+(text.bounds.width/2),
+    new Point(text.position.x+(inner.bounds.width/2),
 	      text.position.y),
-    new Point(text.position.x+(text.bounds.width/2)+line_length,
+    new Point(text.position.x+(inner.bounds.width/2)+line_length,
 	      text.position.y)
 )
-var horizontal_spacing = text.bounds.width/3;
+var horizontal_spacing = inner.bounds.width/3;
 var top_left = new Path.Line(
-    new Point(text.bounds.topLeft.x+horizontal_spacing,
-	      text.bounds.topLeft.y),
-    new Point(text.bounds.topLeft.x+horizontal_spacing,
-	      text.bounds.topLeft.y-line_length)
+    new Point(inner.bounds.topLeft.x+horizontal_spacing,
+	      inner.bounds.topLeft.y),
+    new Point(inner.bounds.topLeft.x+horizontal_spacing,
+	      inner.bounds.topLeft.y-line_length)
 )
 var top_right = new Path.Line(
-    new Point(text.bounds.topRight.x-horizontal_spacing,
-	      text.bounds.topRight.y),
-    new Point(text.bounds.topRight.x-horizontal_spacing,
-	      text.bounds.topRight.y-line_length)
+    new Point(inner.bounds.topRight.x-horizontal_spacing,
+	      inner.bounds.topRight.y),
+    new Point(inner.bounds.topRight.x-horizontal_spacing,
+	      inner.bounds.topRight.y-line_length)
     
 )
 var bottom_left = new Path.Line(
-    new Point(text.bounds.bottomLeft.x+horizontal_spacing,
-	      text.bounds.bottomLeft.y),
-    new Point(text.bounds.bottomLeft.x+horizontal_spacing,
-	      text.bounds.bottomLeft.y+line_length)
+    new Point(inner.bounds.bottomLeft.x+horizontal_spacing,
+	      inner.bounds.bottomLeft.y),
+    new Point(inner.bounds.bottomLeft.x+horizontal_spacing,
+	      inner.bounds.bottomLeft.y+line_length)
 )
 var bottom_right = new Path.Line(
-    new Point(text.bounds.bottomRight.x-horizontal_spacing,
-	      text.bounds.bottomRight.y),
-    new Point(text.bounds.bottomRight.x-horizontal_spacing,
-	      text.bounds.bottomRight.y+line_length)
+    new Point(inner.bounds.bottomRight.x-horizontal_spacing,
+	      inner.bounds.bottomRight.y),
+    new Point(inner.bounds.bottomRight.x-horizontal_spacing,
+	      inner.bounds.bottomRight.y+line_length)
     
 )
 
@@ -100,7 +109,7 @@ segmentLayer.children.forEach(function(segment, index) {
 
 var polarVertices = [];
 for(var i=0; i<vertices.length; i++){
-    var polarCoords = cart_to_polar(vertices[i],text.bounds.center);
+    var polarCoords = cart_to_polar(vertices[i],inner.bounds.center);
     polarCoords.x = vertices[i].x;
     polarCoords.y = vertices[i].y;
     polarVertices.push(polarCoords);
