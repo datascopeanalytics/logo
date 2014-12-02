@@ -106,21 +106,39 @@ var Logo = function(position,displayConstruction) {
 
     )
 
+    var distributionLayer = new Layer();
     var pointLayer = new Layer();
     var vertices = [];
-    var p0, p1;
-    var random = Math.random;
-    random = betavariate_wrapper(0.35, 0.35);
+    var p0, p1, v;
+    // var random = Math.random;
+    var random = betavariate_wrapper(0.35, 0.35); // biased towards ends
+    // var random = betavariate_wrapper(2, 2); // biased toward center
     segmentLayer.children.forEach(function(segment, index) {
         segment.strokeColor = "blue";
 
-        //
+        // choose a random vertex along this segment (or "track")
         p0 = segment.segments[0].point;
         p1 = segment.segments[1].point;
-        var vertex = p0 + (p1 - p0) * random();
+	v = p1 - p0;
+	w = v.rotate(90, new Point(0, 0));
+	w = w.normalize();
+		 
+        var vertex = p0 + v * random();
 	vertices.push(vertex);
         var p = new Path.Circle(vertex, 5);
         p.fillColor = "rgb(150,150,255)";
+
+	// generate a histogram using the random number generator and
+	// stretch it so it
+	var distribution = distributionLayer.addChild(new Path.Line([]));
+	distribution.fillColor = "rgb(200,200,255)";
+	var histogram = generate_histogram(random, 1000, 0.05);
+	histogram.forEach(function (bin, index) {
+	    distribution.add(p0 + (v * bin.min) + (w * (bin.frequency / histogram.max_frequency * 20)));
+	    distribution.add(p0 + (v * bin.max) + (w * (bin.frequency / histogram.max_frequency * 20)));
+	});
+	distribution.add(p1);
+	distribution.add(p0);
 
     })
 
@@ -148,6 +166,7 @@ var Logo = function(position,displayConstruction) {
         boundsLayer.remove();
         segmentLayer.remove();
         pointLayer.remove();
+	distributionLayer.remove();
     }
 }
 
@@ -238,6 +257,35 @@ function betavariate_wrapper(alpha, beta) {
     return function () {
 	return betavariate(alpha, beta);
     }
+}
+
+// returns a histogram of N numbers drawn from the random function
+// with bins of linear bin_width
+function generate_histogram(random, N, bin_width) {
+    // instantiate bins
+    var x, histogram = [];
+    for(x=0;x<1;x+=bin_width) {
+	histogram.push({min: x, max: x+bin_width, count: 0, frequency: null});
+    }
+
+
+    // for each randomly drawn number, put it in the right bin
+    var n, r, i;
+    for(n=0; n<N; n+=1) {
+	r = random();
+	i = Math.floor(r/bin_width);
+	histogram[i].count += 1;
+    }
+
+    // normalize things
+    histogram.max_frequency = 0;
+    histogram.forEach(function (bin) {
+	bin.frequency = bin.count / N;
+	if (bin.frequency > histogram.max_frequency) {
+	    histogram.max_frequency = bin.frequency;
+	}
+    });
+    return histogram;
 }
 
 var draw = function() {
