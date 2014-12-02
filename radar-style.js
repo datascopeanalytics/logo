@@ -109,13 +109,15 @@ var Logo = function(position,displayConstruction) {
     var pointLayer = new Layer();
     var vertices = [];
     var p0, p1;
+    var random = Math.random;
+    random = betavariate_wrapper(0.35, 0.35);
     segmentLayer.children.forEach(function(segment, index) {
         segment.strokeColor = "blue";
 
         //
         p0 = segment.segments[0].point;
         p1 = segment.segments[1].point;
-        var vertex = p0 + (p1 - p0) * Math.random();//betavariate(0.35, 0.35);
+        var vertex = p0 + (p1 - p0) * random();
 	vertices.push(vertex);
         var p = new Path.Circle(vertex, 5);
         p.fillColor = "rgb(150,150,255)";
@@ -231,6 +233,11 @@ function betavariate(alpha, beta) {
         return 0.0;
     else
         return y / (y + gammavariate(beta, 1.));
+}
+function betavariate_wrapper(alpha, beta) {
+    return function () {
+	return betavariate(alpha, beta);
+    }
 }
 
 var draw = function() {
