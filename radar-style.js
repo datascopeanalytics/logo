@@ -32,6 +32,7 @@ var Logo = function(position,displayConstruction) {
             inner.bounds.topLeft.y-corner_line_length
         )
     )
+    tl_corner.rotate(jitter(20));
     var tr_corner = new Path.Line(
         inner.bounds.topRight+new Point(-corner_line_length,
 					corner_line_length),
@@ -40,6 +41,7 @@ var Logo = function(position,displayConstruction) {
             inner.bounds.topRight.y-corner_line_length
         )
     )
+    tr_corner.rotate(jitter(20));
     var bl_corner = new Path.Line(
         inner.bounds.bottomLeft+new Point(corner_line_length,
 					  -corner_line_length),
@@ -48,6 +50,7 @@ var Logo = function(position,displayConstruction) {
             inner.bounds.bottomLeft.y+corner_line_length
         )
     )
+    bl_corner.rotate(jitter(20));
     var br_corner = new Path.Line(
         inner.bounds.bottomRight+new Point(-corner_line_length,
 					   -corner_line_length),
@@ -56,6 +59,7 @@ var Logo = function(position,displayConstruction) {
             inner.bounds.bottomRight.y+corner_line_length
         )
     )
+    br_corner.rotate(jitter(20));
     var dy = jitter(30);
     var left_side = new Path.Line(
         new Point(text.position.x-(inner.bounds.width/2),
