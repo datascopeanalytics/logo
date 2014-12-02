@@ -21,7 +21,7 @@ console.log(text.bounds.topLeft);
 var segmentLayer = new Layer();
 // corners first
 var line_length = text.bounds.height/2;
-var corner_line_length = line_length/Math.sqrt(2);
+var corner_line_length = 10 //line_length/Math.sqrt(2);
 
 var tl_corner = new Path.Line(
     inner.bounds.topLeft,
@@ -100,7 +100,7 @@ segmentLayer.children.forEach(function(segment, index) {
     // 
     p0 = segment.segments[0].point;
     p1 = segment.segments[1].point;
-    var vertex = p0 + (p1 - p0) * Math.random();
+    var vertex = p0 + (p1 - p0) * betavariate(0.35, 0.35);
     vertices.push(vertex);
     var p = new Path.Circle(vertex, 5);
     p.fillColor = "rgb(150,150,255)";
@@ -127,7 +127,7 @@ shape.add(polar_to_point(polarVertices[0]));
 
 shapeLayer.moveBelow(textLayer);
 
-var displayConstruction = false;
+var displayConstruction = true;
 if(!displayConstruction){
     boundsLayer.remove();
     segmentLayer.remove();
@@ -154,3 +154,66 @@ function theta_comparator(a,b){
 function polar_to_point(polarCoord){
     return new Point(polarCoord.x, polarCoord.y);
 }
+
+// ported from random.py
+var LOG4 = Math.log(4.0)
+var SG_MAGICCONST = 1.0 + Math.log(4.5);
+function gammavariate(alpha, beta) {
+    if (alpha > 1) {
+        var ainv = Math.sqrt(2.0 * alpha - 1.0)
+        var bbb = alpha - LOG4;
+        var ccc = alpha + ainv;
+	while (true) {
+            var u1 = Math.random()
+            if (!(1e-7 < u1 && u1 < .9999999)) {
+                continue
+	    }
+            var u2 = 1.0 - Math.random();
+            var v = Math.log(u1/(1.0-u1))/ainv;
+            var x = alpha*Math.exp(v);
+            var z = u1*u1*u2;
+            var r = bbb+ccc*v-x;
+            if(r + SG_MAGICCONST - 4.5*z >= 0.0 || r >= Math.log(z)) {
+                return x * beta
+	    }
+	}
+    }
+    else if (alpha === 1) {
+	var u = Math.random();
+        while (u <= 1e-7){
+            u = Math.random();
+	}
+        return -Math.log(u) * beta
+    }
+    else {
+	var _e = Math.exp(1);
+        while (true) {
+            var u = Math.random();
+            var b = (_e + alpha)/_e;
+            var p = b*u;
+            if (p <= 1.0)
+                var x = Math.pow(p, (1.0/alpha));
+            else
+                var x = -Math.log((b-p)/alpha);
+            var u1 = Math.random();
+            if (p > 1.0) {
+                if (u1 <= Math.pow(x, (alpha - 1.0))) {
+                    break;
+		}
+	    }
+	    else if (u1 <= Math.exp(-x))
+                break;
+	}
+        return x * beta;
+    }
+}
+function betavariate(alpha, beta) {
+    var y = gammavariate(alpha, 1.);
+    if (y === 0)
+        return 0.0;
+    else
+        return y / (y + gammavariate(beta, 1.));
+}
+
+
+console.log(betavariate(.11,.11));
