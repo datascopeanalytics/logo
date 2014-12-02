@@ -22,72 +22,84 @@ var Logo = function(position,displayConstruction) {
     var segmentLayer = new Layer();
     // corners first
     var line_length = text.bounds.height/2;
-    var corner_line_length = 10 //line_length/Math.sqrt(2);
+    var corner_line_length = line_length/Math.sqrt(2)*.75;
 
     var tl_corner = new Path.Line(
-        inner.bounds.topLeft,
+        inner.bounds.topLeft+new Point(corner_line_length,
+				       corner_line_length),
         new Point(
             inner.bounds.topLeft.x-corner_line_length,
             inner.bounds.topLeft.y-corner_line_length
         )
     )
     var tr_corner = new Path.Line(
-        inner.bounds.topRight,
+        inner.bounds.topRight+new Point(-corner_line_length,
+					corner_line_length),
         new Point(
             inner.bounds.topRight.x+corner_line_length,
             inner.bounds.topRight.y-corner_line_length
         )
     )
-    var tl_corner = new Path.Line(
-        inner.bounds.bottomLeft,
+    var bl_corner = new Path.Line(
+        inner.bounds.bottomLeft+new Point(corner_line_length,
+					  -corner_line_length),
         new Point(
             inner.bounds.bottomLeft.x-corner_line_length,
             inner.bounds.bottomLeft.y+corner_line_length
         )
     )
-    var tl_corner = new Path.Line(
-        inner.bounds.bottomRight,
+    var br_corner = new Path.Line(
+        inner.bounds.bottomRight+new Point(-corner_line_length,
+					   -corner_line_length),
         new Point(
             inner.bounds.bottomRight.x+corner_line_length,
             inner.bounds.bottomRight.y+corner_line_length
         )
     )
+    var jitter = 30;
+    var dy = Math.random() * jitter * 2 - jitter;
     var left_side = new Path.Line(
         new Point(text.position.x-(inner.bounds.width/2),
-                  text.position.y),
+                  text.position.y+dy),
         new Point(text.position.x-(inner.bounds.width/2)-line_length,
-                  text.position.y)
+                  text.position.y+dy)
     )
+    dy = Math.random() * jitter * 2 - jitter;
     var right_side = new Path.Line(
         new Point(text.position.x+(inner.bounds.width/2),
-                  text.position.y),
+                  text.position.y+dy),
         new Point(text.position.x+(inner.bounds.width/2)+line_length,
-                  text.position.y)
+                  text.position.y+dy)
     )
     var horizontal_spacing = inner.bounds.width/3;
+    var jitter = 30;
+    var dx = Math.random() * jitter * 2 - jitter;
     var top_left = new Path.Line(
-        new Point(inner.bounds.topLeft.x+horizontal_spacing,
+        new Point(inner.bounds.topLeft.x+horizontal_spacing+dx,
                   inner.bounds.topLeft.y),
-        new Point(inner.bounds.topLeft.x+horizontal_spacing,
+        new Point(inner.bounds.topLeft.x+horizontal_spacing+dx,
                   inner.bounds.topLeft.y-line_length)
     )
+    dx = Math.random() * jitter * 2 - jitter;
     var top_right = new Path.Line(
-        new Point(inner.bounds.topRight.x-horizontal_spacing,
-                  inner.bounds.topRight.y),
-        new Point(inner.bounds.topRight.x-horizontal_spacing,
+        new Point(inner.bounds.topRight.x-horizontal_spacing+dx,
+                  inner.bounds.topRight.y+line_length/2),
+        new Point(inner.bounds.topRight.x-horizontal_spacing+dx,
                   inner.bounds.topRight.y-line_length)
 
     )
+    dx = Math.random() * jitter * 2 - jitter;
     var bottom_left = new Path.Line(
-        new Point(inner.bounds.bottomLeft.x+horizontal_spacing,
-                  inner.bounds.bottomLeft.y),
-        new Point(inner.bounds.bottomLeft.x+horizontal_spacing,
+        new Point(inner.bounds.bottomLeft.x+horizontal_spacing+dx,
+                  inner.bounds.bottomLeft.y-line_length/2),
+        new Point(inner.bounds.bottomLeft.x+horizontal_spacing+dx,
                   inner.bounds.bottomLeft.y+line_length)
     )
+    dx = Math.random() * jitter * 2 - jitter;
     var bottom_right = new Path.Line(
-        new Point(inner.bounds.bottomRight.x-horizontal_spacing,
+        new Point(inner.bounds.bottomRight.x-horizontal_spacing+dx,
                   inner.bounds.bottomRight.y),
-        new Point(inner.bounds.bottomRight.x-horizontal_spacing,
+        new Point(inner.bounds.bottomRight.x-horizontal_spacing+dx,
                   inner.bounds.bottomRight.y+line_length)
 
     )
@@ -101,7 +113,7 @@ var Logo = function(position,displayConstruction) {
         //
         p0 = segment.segments[0].point;
         p1 = segment.segments[1].point;
-        var vertex = p0 + (p1 - p0) * betavariate(0.35, 0.35);
+        var vertex = p0 + (p1 - p0) * Math.random();//betavariate(0.35, 0.35);
 	vertices.push(vertex);
         var p = new Path.Circle(vertex, 5);
         p.fillColor = "rgb(150,150,255)";
@@ -223,7 +235,7 @@ var draw = function() {
         // put the center (?) of this SVG in this location and color it white
 
         // make a v nice polygon
-        Logo(points[i],false);
+        Logo(points[i],true);
     }
 }
 draw();
