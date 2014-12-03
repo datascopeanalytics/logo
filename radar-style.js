@@ -111,8 +111,8 @@ var Logo = function(position,displayConstruction) {
     var vertices = [];
     var p0, p1, v;
     // var random = Math.random;
-    var random = betavariate_wrapper(0.35, 0.35); // biased towards ends
-    // var random = betavariate_wrapper(2, 2); // biased toward center
+    // var random = betavariate_wrapper(0.35, 0.35); // biased towards ends
+    var random = betavariate_wrapper(2, 2); // biased toward center
     segmentLayer.children.forEach(function(segment, index) {
         segment.strokeColor = "blue";
 
@@ -154,13 +154,27 @@ var Logo = function(position,displayConstruction) {
     var shapeLayer = new Layer();
     var shape = new Path();
     shape.fillColor = "#ff6000";
-
     for(var i=0; i<polarVertices.length; i++){
         shape.add(polar_to_point(polarVertices[i]));
     }
     shape.add(polar_to_point(polarVertices[0]));
-
     shapeLayer.moveBelow(textLayer);
+
+    console.log("before", shape.area);
+    shape.scale(Math.sqrt(43000/shape.area));
+    console.log("after", shape.area);
+
+    
+    // test to see if it's quadratic
+    // spoiler alert: it is. area = alpha * scale^2
+    // var data = [];
+    // for(var scale=1;scale<3;scale+=0.1) {
+    // 	var x = shape.clone();
+    // 	x.scale(scale);
+    // 	data.push(scale + " " + x.area);
+    // }
+    // console.log(data);
+
 
     if(!displayConstruction){
         boundsLayer.remove();
@@ -296,7 +310,7 @@ var draw = function() {
         // put the center (?) of this SVG in this location and color it white
 
         // make a v nice polygon
-        Logo(points[i],true);
+        Logo(points[i],false);
     }
 }
 draw();
