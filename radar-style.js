@@ -1,4 +1,4 @@
-var Logo = function(position,displayConstruction) {
+var Logo = function(position,fillColor,displayConstruction) {
     var textLayer = new Layer();
     var text = project.importSVG(document.getElementById('logotype'));
     text.position = position;
@@ -153,17 +153,12 @@ var Logo = function(position,displayConstruction) {
 
     var shapeLayer = new Layer();
     var shape = new Path();
-    shape.fillColor = "#ff6000";
+    shape.fillColor = fillColor
     for(var i=0; i<polarVertices.length; i++){
         shape.add(polar_to_point(polarVertices[i]));
     }
     shape.add(polar_to_point(polarVertices[0]));
     shapeLayer.moveBelow(textLayer);
-
-    console.log("before", shape.area);
-    shape.scale(Math.sqrt(43000/shape.area));
-    console.log("after", shape.area);
-
     
     // test to see if it's quadratic
     // spoiler alert: it is. area = alpha * scale^2
@@ -175,19 +170,20 @@ var Logo = function(position,displayConstruction) {
     // }
     // console.log(data);
 
+    shape.scale(Math.sqrt(42000/shape.area));
+
     // center that shit
-    text.position = centroid(shape);
-
-
+    var c = centroid(shape);
+    shape.translate(text.position - c);
+    
     if(!displayConstruction){
         boundsLayer.remove();
         segmentLayer.remove();
         pointLayer.remove();
 	distributionLayer.remove();
     }
+    return shape;
 }
-
-
 
 
 function centroid(polygon) {
@@ -326,14 +322,30 @@ function generate_histogram(random, N, bin_width) {
 }
 
 var draw = function() {
+    var colors = {"red":"#BA0017",
+		  "orange":"#FF6000",
+		  "yellow":"#F3ED00",
+		  "green":"#00CC66",
+		  "blue":"#008EF5",
+		  "indigo":"#260052",
+		  "magenta":"#D30097"};
+
+
     // this is for drawing 9 different logos on 1 canvas. we happen to know the size a priori.
     var points = [[200,100],[600,100],[1000,100],[200,300],[600,300],[1000,300],[200,500],[600,500],[1000,500]];
     for (var i=0; i<points.length; i++){
-
+	
         // put the center (?) of this SVG in this location and color it white
 
         // make a v nice polygon
-        Logo(points[i],false);
+
+	// shapes need to be more extreme to look good layering multiple colors
+	var a = Logo(points[i],colors.red, false);
+	// a.scale(1.1);
+        var b = Logo(points[i],colors.yellow, false);
+	// b.scale(1.05);
+	Logo(points[i],colors.orange, false);
+	
     }
 }
 draw();
